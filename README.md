@@ -1,0 +1,1 @@
+# Ksh-hesap1
