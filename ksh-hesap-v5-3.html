@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KSH Hesaplama</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg:       #f5f4f0;
+  --surface:  #ffffff;
+  --border:   #d8d5ce;
+  --border2:  #b8b4ac;
+  --text:     #1a1916;
+  --text-dim: #6b6860;
+  --accent:   #c8451a;
+  --accent-bg:#fdf1ed;
+  --accent-dk:#9e3414;
+  --green:    #1a7a4a;
+  --green-bg: #edf7f2;
+  --blue:     #1a4a8a;
+  --blue-bg:  #edf2fb;
+  --warn:     #a06010;
+  --warn-bg:  #fdf6e8;
+  --mono:     'IBM Plex Mono', monospace;
+  --sans:     'IBM Plex Sans', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+header {
+  background: var(--text);
+  color: #fff;
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-title {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.header-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  background: var(--accent);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 2px;
+  letter-spacing: 0.08em;
+}
+
+/* ── TAB NAV ── */
+.tab-nav {
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  display: flex;
+  padding: 0 24px;
+  gap: 0;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 14px 20px 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+  margin-bottom: -2px;
+}
+
+.tab-btn:hover { color: var(--text); }
+
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ── LAYOUT ── */
+.container {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── SECTION HEADER ── */
+.section-header {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.section-sub {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* ── FORMULA BOX ── */
+.formula-box {
+  background: var(--text);
+  color: #e8e6e0;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.8;
+  padding: 14px 18px;
+  border-radius: 4px;
+  margin-bottom: 24px;
+}
+
+.formula-box .lbl { color: #aaa; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: block; }
+.formula-box .eq  { color: #fff; }
+.formula-box .var { color: #f5c842; }
+.formula-box .op  { color: #ff8c5a; }
+
+/* ── INPUT CARD ── */
+.input-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.input-card-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.field-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 560px) {
+  .field-grid, .field-grid-3 { grid-template-columns: 1fr; }
+}
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+
+.field label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.input-wrap {
+  display: flex;
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.input-wrap:focus-within {
+  border-color: var(--accent);
+}
+
+.input-wrap input,
+.input-wrap select {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 10px 12px;
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+  min-width: 0;
+}
+
+.input-wrap select { cursor: pointer; }
+
+.unit {
+  padding: 10px 12px;
+  background: var(--bg);
+  border-left: 1.5px solid var(--border);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+}
+
+/* ── CALC BUTTON ── */
+.calc-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 13px;
+  background: var(--text);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.calc-btn:hover { background: #333; }
+.calc-btn:active { background: #555; }
+
+/* ── RESULT CARD ── */
+.result-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  margin-top: 20px;
+  overflow: hidden;
+  display: none;
+}
+
+.result-card.show { display: block; }
+
+.result-card-header {
+  background: var(--text);
+  color: #fff;
+  padding: 12px 20px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.result-card-header::before {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+.result-body { padding: 20px; }
+
+.result-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+
+.result-row:last-child { border-bottom: none; }
+
+.result-label {
+  font-size: 13px;
+  color: var(--text-dim);
+  flex: 1;
+}
+
+.result-value {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: right;
+}
+
+.result-value.accent { color: var(--accent); font-size: 20px; }
+.result-value.green  { color: var(--green); }
+.result-value.warn   { color: var(--warn); }
+.result-value.blue   { color: var(--blue); }
+
+.result-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  display: block;
+  text-align: right;
+}
+
+/* ── HIGHLIGHT RESULT ── */
+.result-highlight {
+  background: var(--accent-bg);
+  border: 1.5px solid var(--accent);
+  border-radius: 6px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.result-highlight-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.result-highlight-value {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* GRID SONUÇLAR */
+.result-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 480px) { .result-grid-2 { grid-template-columns: 1fr; } }
+
+.result-block {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 14px 16px;
+}
+
+.result-block-val {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.result-block-val.accent { color: var(--accent); }
+.result-block-val.green  { color: var(--green); }
+.result-block-val.blue   { color: var(--blue); }
+.result-block-val.warn   { color: var(--warn); }
+
+.result-block-lbl {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+}
+
+/* ── UYARI ── */
+.uyari {
+  background: var(--warn-bg);
+  border: 1px solid #e8c070;
+  border-radius: 4px;
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--warn);
+  line-height: 1.6;
+  margin-top: 12px;
+  display: none;
+}
+
+.uyari.show { display: block; }
+.uyari strong { font-weight: 600; }
+
+.bilgi {
+  background: var(--blue-bg);
+  border: 1px solid #b0c4e8;
+  border-radius: 4px;
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--blue);
+  line-height: 1.6;
+  margin-top: 12px;
+}
+
+/* ── DIVIDER ── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="header-title">🧬 KSH Hesaplama Sistemi</span>
+  <span class="header-badge">Kök Hücre Transplantasyon Ünitesi</span>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="showTab('cd34', this)">CD34+ Dozu</button>
+  <button class="tab-btn" onclick="showTab('tnc', this)">TNC / MNC</button>
+  <button class="tab-btn" onclick="showTab('dli', this)">DLI Dozu</button>
+  <button class="tab-btn" onclick="showTab('islenen', this)">İşlenecek Kan</button>
+  <button class="tab-btn" onclick="showTab('kryo', this)">Kriyoprezervasyon</button>
+</nav>
+
+<div class="container">
+
+  <!-- ═══════════════════════════════════════
+       PANEL 1 — CD34+ DOZ HESABI
+  ════════════════════════════════════════ -->
+  <div id="panel-cd34" class="panel active">
+
+    <div class="section-header">
+      <div class="section-title">CD34+ Hücre Dozu</div>
+      <div class="section-sub">Ürün CD34+ konsantrasyonu ve hacminden kg başına düşen hücre dozunu hesaplar.</div>
+    </div>
+
+    <div class="formula-box">
+      <span class="lbl">Formül</span>
+      <span class="eq">
+        <span class="var">CD34+/kg</span> <span class="op">=</span>
+        <span class="var">CD34+ (/µL)</span> <span class="op">×</span>
+        <span class="var">Ürün Hacmi (µL)</span> <span class="op">÷</span>
+        <span class="var">Hasta Kilosu</span> <span class="op">÷</span> 10⁶
+      </span>
+    </div>
+
+    <div class="input-card">
+      <div class="input-card-title">Hasta & Ürün Bilgileri</div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Hasta Kilosu</label>
+          <div class="input-wrap">
+            <input type="number" id="cd34-kilo" placeholder="70" min="5" max="250" step="0.1">
+            <span class="unit">kg</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Gilcher Katsayısı</label>
+          <div class="input-wrap">
+            <select id="cd34-gilcher">
+              <option value="55">55 — Küçük / Kadın</option>
+              <option value="60">60 — Orta Kadın</option>
+              <option value="65" selected>65 — Standart Erkek</option>
+              <option value="70">70 — Büyük Erkek</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Ürün CD34+ Konsantrasyonu</label>
+          <div class="input-wrap">
+            <input type="number" id="cd34-ul" placeholder="565" min="1" max="9999">
+            <span class="unit">/µL</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Ürün Hacmi</label>
+          <div class="input-wrap">
+            <input type="number" id="cd34-hacim" placeholder="318" min="1" max="1000">
+            <span class="unit">mL</span>
+          </div>
+        </div>
+      </div>
+      <button class="calc-btn" onclick="hesaplaCD34()">HESAPLA</button>
+    </div>
+
+    <div id="cd34-sonuc" class="result-card">
+      <div class="result-card-header">Hesaplama Sonuçları</div>
+      <div class="result-body">
+        <div class="result-highlight">
+          <span class="result-highlight-label">CD34+ / kg</span>
+          <span class="result-highlight-value" id="r-cd34-kg">—</span>
+        </div>
+
+        <div class="result-grid-2">
+          <div class="result-block">
+            <div class="result-block-val blue" id="r-cd34-toplam">—</div>
+            <div class="result-block-lbl">CD34+ Toplam (×10⁶)</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="result-row">
+          <span class="result-label">Total Kan Hacmi (Gilcher)</span>
+          <span class="result-value" id="r-tbk">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Ekstrakorpüreal Hacim (TBK × 0.15)</span>
+          <span class="result-value warn" id="r-eksh">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">EKS Hacim / TBK</span>
+          <span class="result-value" id="r-eksh-pct">—</span>
+        </div>
+
+        <div id="cd34-uyari" class="uyari">
+          <strong>⚠ Dikkat:</strong> <span id="cd34-uyari-text"></span>
+        </div>
+
+        <div class="bilgi">
+          <strong>Referans değerler:</strong> Minimum engraftman ≥ 2×10⁶/kg &nbsp;·&nbsp; Standart ≥ 4×10⁶/kg &nbsp;·&nbsp; Optimal ≥ 6×10⁶/kg
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PANEL 2 — TNC / MNC
+  ════════════════════════════════════════ -->
+  <div id="panel-tnc" class="panel">
+
+    <div class="section-header">
+      <div class="section-title">TNC & MNC Hesabı</div>
+      <div class="section-sub">Total Nükleated Cell ve Mononüklear Cell miktarını ürün bazında hesaplar.</div>
+    </div>
+
+    <div class="formula-box">
+      <span class="lbl">Formüller</span>
+      <span class="eq">
+        <span class="var">TNC</span> <span class="op">=</span>
+        <span class="var">WBC (/µL)</span> <span class="op">×</span>
+        <span class="var">Ürün Hacmi (µL)</span> <span class="op">÷</span>
+        <span class="var">Kilo</span>
+      </span><br>
+      <span class="eq">
+        <span class="var">MNC</span> <span class="op">=</span>
+        <span class="op">(</span><span class="var">Monosit</span> <span class="op">+</span>
+        <span class="var">Lenfosit</span><span class="op">)</span>
+        <span class="op">×</span> <span class="var">Ürün Hacmi (µL)</span>
+        <span class="op">÷</span> <span class="var">Kilo</span>
+      </span>
+    </div>
+
+    <div class="input-card">
+      <div class="input-card-title">Hasta Bilgisi</div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Hasta Kilosu</label>
+          <div class="input-wrap">
+            <input type="number" id="tnc-kilo" placeholder="70" min="5" max="250" step="0.1">
+            <span class="unit">kg</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Ürün Hacmi</label>
+          <div class="input-wrap">
+            <input type="number" id="tnc-hacim" placeholder="318" min="1" max="1000">
+            <span class="unit">mL</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-card">
+      <div class="input-card-title">Ürün Kan Sayım Değerleri (/µL)</div>
+      <div class="field-grid-3">
+        <div class="field">
+          <label>WBC</label>
+          <div class="input-wrap">
+            <input type="number" id="tnc-wbc" placeholder="225000" min="1">
+            <span class="unit">/µL</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Monosit</label>
+          <div class="input-wrap">
+            <input type="number" id="tnc-mono" placeholder="57700" min="0">
+            <span class="unit">/µL</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Lenfosit</label>
+          <div class="input-wrap">
+            <input type="number" id="tnc-lenf" placeholder="33500" min="0">
+            <span class="unit">/µL</span>
+          </div>
+        </div>
+      </div>
+      <button class="calc-btn" onclick="hesaplaTNC()">HESAPLA</button>
+    </div>
+
+    <div id="tnc-sonuc" class="result-card">
+      <div class="result-card-header">TNC / MNC Sonuçları</div>
+      <div class="result-body">
+        <div class="result-grid-2">
+          <div class="result-block">
+            <div class="result-block-val accent" id="r-tnc-total">—</div>
+            <div class="result-block-lbl">TNC Toplam (×10⁸)</div>
+          </div>
+          <div class="result-block">
+            <div class="result-block-val accent" id="r-tnc-kg">—</div>
+            <div class="result-block-lbl">TNC / kg (×10⁸/kg)</div>
+          </div>
+          <div class="result-block">
+            <div class="result-block-val blue" id="r-mnc-total">—</div>
+            <div class="result-block-lbl">MNC Toplam (×10⁸)</div>
+          </div>
+          <div class="result-block">
+            <div class="result-block-val blue" id="r-mnc-kg">—</div>
+            <div class="result-block-lbl">MNC / kg (×10⁸/kg)</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="result-row">
+          <span class="result-label">Ürün Hacmi (µL)</span>
+          <span class="result-value" id="r-tnc-urun-ul">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Monosit + Lenfosit (/µL)</span>
+          <span class="result-value" id="r-mnc-sum">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PANEL 3 — DLI DOZ HESABI
+  ════════════════════════════════════════ -->
+  <div id="panel-dli" class="panel">
+
+    <div class="section-header">
+      <div class="section-title">DLI Doz Hesabı</div>
+      <div class="section-sub">Donör Lenfosit İnfüzyonu için 1., 2. ve 3. doz hacimlerini hesaplar.</div>
+    </div>
+
+    <div class="formula-box">
+      <span class="lbl">Formül</span>
+      <span class="eq">
+        <span class="var">DLI (mL)</span> <span class="op">=</span>
+        <span class="var">İstenen CD3</span> <span class="op">×</span>
+        <span class="var">Kilo</span> <span class="op">÷</span>
+        <span class="op">(</span>
+        <span class="var">WBC</span> <span class="op">×</span>
+        <span class="var">Lenfosit%</span> <span class="op">×</span>
+        <span class="var">CD3%</span> <span class="op">×</span> 1000
+        <span class="op">)</span>
+      </span>
+    </div>
+
+    <div class="input-card">
+      <div class="input-card-title">Hasta & Ürün Bilgileri</div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Hasta Kilosu</label>
+          <div class="input-wrap">
+            <input type="number" id="dli-kilo" placeholder="70" min="5" max="250" step="0.1">
+            <span class="unit">kg</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Ürün WBC</label>
+          <div class="input-wrap">
+            <input type="number" id="dli-wbc" placeholder="186440" min="1">
+            <span class="unit">/µL</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Lenfosit Yüzdesi</label>
+          <div class="input-wrap">
+            <input type="number" id="dli-lenf-pct" placeholder="30.3" min="0.1" max="100" step="0.1">
+            <span class="unit">%</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>CD3 Yüzdesi</label>
+          <div class="input-wrap">
+            <input type="number" id="dli-cd3-pct" placeholder="82" min="0.1" max="100" step="0.1">
+            <span class="unit">%</span>
+          </div>
+        </div>
+      </div>
+      <button class="calc-btn" onclick="hesaplaDLI()">HESAPLA</button>
+    </div>
+
+    <div id="dli-sonuc" class="result-card">
+      <div class="result-card-header">DLI Doz Sonuçları</div>
+      <div class="result-body">
+
+        <div class="result-row">
+          <span class="result-label">CD3 Konsantrasyonu (ürün)</span>
+          <span class="result-value" id="r-dli-konс">—</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="result-grid-2">
+          <div class="result-block">
+            <div class="result-block-val accent" id="r-dli-1">—</div>
+            <div class="result-block-lbl">1. Doz (1×10⁶/kg) — mL</div>
+          </div>
+          <div class="result-block">
+            <div class="result-block-val accent" id="r-dli-2">—</div>
+            <div class="result-block-lbl">2. Doz (1×10⁷/kg) — mL</div>
+          </div>
+          <div class="result-block">
+            <div class="result-block-val blue" id="r-dli-3">—</div>
+            <div class="result-block-lbl">3. Doz (3×10⁷/kg) — mL</div>
+          </div>
+          <div class="result-block">
+            <div class="result-block-val" id="r-dli-toplam-cd3">—</div>
+            <div class="result-block-lbl">Toplam CD3 (3. doz)</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- İstenen CD3 Dozu — 3 buton + serbest giriş -->
+        <div style="margin-bottom:8px;">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">İSTENEN CD3 DOZU</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+            <button onclick="dliSecDoz(1)" style="flex:1;min-width:80px;padding:8px 4px;font-family:var(--mono);font-size:11px;font-weight:600;border:1.5px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text-dim);cursor:pointer;transition:all 0.15s;" id="dli-btn-1">1×10⁶/kg</button>
+            <button onclick="dliSecDoz(10)" style="flex:1;min-width:80px;padding:8px 4px;font-family:var(--mono);font-size:11px;font-weight:600;border:1.5px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text-dim);cursor:pointer;transition:all 0.15s;" id="dli-btn-10">1×10⁷/kg</button>
+            <button onclick="dliSecDoz(30)" style="flex:1;min-width:80px;padding:8px 4px;font-family:var(--mono);font-size:11px;font-weight:600;border:1.5px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text-dim);cursor:pointer;transition:all 0.15s;" id="dli-btn-30">3×10⁷/kg</button>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div class="input-wrap" style="flex:1;min-width:140px;">
+              <input type="number" id="dli-istenen-doz" placeholder="Özel doz" min="0.01" step="0.01" oninput="hesaplaDLIIstenen()">
+              <span class="unit">×10⁶/kg</span>
+            </div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);">→</div>
+            <div style="flex:1;min-width:120px;background:var(--accent-bg);border:1.5px solid var(--accent);border-radius:4px;padding:10px 14px;">
+              <div style="font-family:var(--mono);font-size:20px;font-weight:600;color:var(--accent);line-height:1;" id="r-dli-istenen">—</div>
+              <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:3px;">mL</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bilgi" style="margin-top:12px;">
+          <strong>Doz şeması:</strong> 1. doz → 1×10⁶ CD3/kg &nbsp;·&nbsp; 2. doz → 1×10⁷ CD3/kg &nbsp;·&nbsp; 3. doz → 3×10⁷ CD3/kg
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PANEL 4 — İŞLENECEK KAN
+  ════════════════════════════════════════ -->
+  <div id="panel-islenen" class="panel">
+
+    <div class="section-header">
+      <div class="section-title">İşlenecek Kan Miktarı</div>
+      <div class="section-sub">İstenen CD34+ dozuna ulaşmak için aferezde işlenmesi gereken kan miktarını hesaplar.</div>
+    </div>
+
+    <div class="formula-box">
+      <span class="lbl">Formül</span>
+      <span class="eq">
+        <span class="var">İşlenecek Kan (mL)</span> <span class="op">=</span>
+        <span class="op">(</span><span class="var">İstenen CD34+</span>
+        <span class="op">×</span> 10⁶ <span class="op">×</span>
+        <span class="var">Kilo</span><span class="op">)</span>
+        <span class="op">÷</span>
+        <span class="op">(</span><span class="var">PB CD34+</span>
+        <span class="op">×</span> <span class="var">TE</span><span class="op">)</span>
+      </span>
+    </div>
+
+    <div class="input-card">
+      <div class="input-card-title">Hesaplama Parametreleri</div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Hasta Kilosu</label>
+          <div class="input-wrap">
+            <input type="number" id="isl-kilo" placeholder="70" min="5" max="250" step="0.1">
+            <span class="unit">kg</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>İstenen CD34+ Dozu</label>
+          <div class="input-wrap">
+            <input type="number" id="isl-hedef-cd34" placeholder="4" min="0.5" max="20" step="0.5">
+            <span class="unit">×10⁶/kg</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Giriş (PB) CD34+</label>
+          <div class="input-wrap">
+            <input type="number" id="isl-pb-cd34" placeholder="24" min="1" max="500">
+            <span class="unit">/µL</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Transfer Etkinliği (TE)</label>
+          <div class="input-wrap">
+            <select id="isl-te">
+              <option value="0.5">0.5 (Düşük)</option>
+              <option value="0.6" selected>0.6 (Standart)</option>
+              <option value="0.65">0.65</option>
+              <option value="0.7">0.7 (Yüksek)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <button class="calc-btn" onclick="hesaplaIslenen()">HESAPLA</button>
+    </div>
+
+    <div id="islenen-sonuc" class="result-card">
+      <div class="result-card-header">İşlenecek Kan Sonuçları</div>
+      <div class="result-body">
+
+        <div class="result-highlight">
+          <span class="result-highlight-label">İşlenecek Kan</span>
+          <span class="result-highlight-value" id="r-isl-kan">—</span>
+        </div>
+
+        <div class="result-grid-2">
+          <div class="result-block">
+            <div class="result-block-val blue" id="r-isl-toplam-hedef">—</div>
+            <div class="result-block-lbl">Toplam Hedef CD34+ (×10⁶)</div>
+          </div>
+          <div class="result-block">
+            <div class="result-block-val" id="r-isl-seans">—</div>
+            <div class="result-block-lbl">Tahmini Seans Sayısı</div>
+          </div>
+        </div>
+
+        <div id="isl-uyari" class="uyari">
+          <strong>⚠</strong> <span id="isl-uyari-text"></span>
+        </div>
+
+        <div class="bilgi">
+          <strong>Not:</strong> TE = 0.6 standart değerdir. PB CD34+ &lt;10/µL ise zayıf mobilizasyon — plerixafor değerlendirin.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PANEL 5 — KRİYOPREZERVASYON
+  ════════════════════════════════════════ -->
+  <div id="panel-kryo" class="panel">
+
+    <div class="section-header">
+      <div class="section-title">Kriyoprezervasyon</div>
+      <div class="section-sub">Hacim hesabı adım adım: Toplam hacim → Santrifüj ayrımı → Kaset planlaması</div>
+    </div>
+
+    <!-- ── KRİYO ALT SEKMELERİ ── -->
+    <div style="display:flex;gap:0;border:1.5px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:24px;">
+      <button class="kryo-sub-btn active" onclick="showKryoSub('toplam', this)" style="flex:1;padding:10px 6px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;border:none;border-right:1px solid var(--border);background:var(--text);color:#fff;cursor:pointer;transition:background 0.15s;">① Toplam<br>Hacim</button>
+      <button class="kryo-sub-btn" onclick="showKryoSub('santrifuj', this)" style="flex:1;padding:10px 6px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;border:none;border-right:1px solid var(--border);background:var(--surface);color:var(--text-dim);cursor:pointer;transition:background 0.15s;">② Santrifüj<br>Ayrılan</button>
+      <button class="kryo-sub-btn" onclick="showKryoSub('kaset', this)" style="flex:1;padding:10px 6px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;border:none;background:var(--surface);color:var(--text-dim);cursor:pointer;transition:background 0.15s;">③ Kaset<br>Planı</button>
+    </div>
+
+    <!-- ── SUB-PANEL A: TOPLAM HACİM ── -->
+    <div id="kryo-sub-toplam" class="kryo-sub active">
+      <div class="formula-box">
+        <span class="lbl">Açıklama</span>
+        <span class="eq">Aferez cihazından çıkan <span class="var">toplam ürün hacmi</span> girilir.</span><br>
+        <span class="eq">Bu değer sonraki adımlar için temel alınır.</span>
+      </div>
+      <div class="input-card">
+        <div class="input-card-title">Toplam Ürün Hacmi</div>
+        <div class="field-grid">
+          <div class="field">
+            <label>Toplam Hacim (Aferez Çıkışı)</label>
+            <div class="input-wrap">
+              <input type="number" id="kryo-toplam-hacim" placeholder="345" min="1" max="2000" oninput="kryoOtomatikGuncelle()">
+              <span class="unit">mL</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="kryo-toplam-sonuc" class="result-card">
+        <div class="result-card-header">Toplam Hacim</div>
+        <div class="result-body">
+          <div class="result-highlight">
+            <span class="result-highlight-label">Toplam Ürün Hacmi</span>
+            <span class="result-highlight-value" id="r-kryo-toplam-hacim">—</span>
+          </div>
+          <div class="bilgi" style="margin-top:12px;">Sonraki adım: Santrifüjle ayrılan hacmi girin → ② sekmesi</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SUB-PANEL B: SANTRİFÜJ AYRILAN ── -->
+    <div id="kryo-sub-santrifuj" class="kryo-sub" style="display:none;">
+      <div class="formula-box">
+        <span class="lbl">Açıklama</span>
+        <span class="eq">Santrifüj sonrası <span class="var">uzaklaştırılan süpernatant/plazma hacmi</span> girilir.</span><br>
+        <span class="eq"><span class="var">Kalan Hacim</span> <span class="op">=</span> <span class="var">Toplam Hacim</span> <span class="op">−</span> <span class="var">Santrifüj Ayrılan</span></span>
+      </div>
+      <div class="input-card">
+        <div class="input-card-title">Santrifüjle Uzaklaştırılan Hacim</div>
+        <div class="field-grid">
+          <div class="field">
+            <label>Santrifüjle Ayrılan Hacim</label>
+            <div class="input-wrap">
+              <input type="number" id="kryo-santrifuj-hacim" placeholder="120" min="0" max="2000" oninput="kryoOtomatikGuncelle()">
+              <span class="unit">mL</span>
+            </div>
+          </div>
+          <div class="field" style="display:flex;flex-direction:column;justify-content:flex-end;">
+            <label style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.08em;text-transform:uppercase;">Toplam Hacim (①'den)</label>
+            <div style="padding:10px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:4px;font-family:var(--mono);font-size:14px;color:var(--text-dim);" id="kryo-santrifuj-ref">— mL</div>
+          </div>
+        </div>
+      </div>
+      <div id="kryo-santrifuj-sonuc" class="result-card">
+        <div class="result-card-header">Santrifüj Ayrımı</div>
+        <div class="result-body">
+          <div class="result-grid-2">
+            <div class="result-block">
+              <div class="result-block-val blue" id="r-kryo-sant-toplam">—</div>
+              <div class="result-block-lbl">Toplam Hacim (mL)</div>
+            </div>
+            <div class="result-block">
+              <div class="result-block-val warn" id="r-kryo-sant-ayrilan">—</div>
+              <div class="result-block-lbl">Santrifüj Ayrılan (mL)</div>
+            </div>
+          </div>
+          <div style="background:var(--green-bg);border:1.5px solid var(--green);border-radius:6px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
+            <span style="font-size:13px;font-weight:500;">Kalan Hacim (③)</span>
+            <span style="font-family:var(--mono);font-size:26px;font-weight:600;color:var(--green);" id="r-kryo-sant-kalan">—</span>
+          </div>
+          <div class="bilgi" style="margin-top:12px;">Bu değer otomatik olarak ③ Kaset Planı sekmesine aktarılır.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SUB-PANEL D: KASET PLANI ── -->
+    <div id="kryo-sub-kaset" class="kryo-sub" style="display:none;">
+      <div class="formula-box">
+        <span class="lbl">Formüller (%5 DMSO + %6 Voluven protokolü)</span>
+        <span class="eq"><span class="var">DMSO / Kaset</span> <span class="op">=</span> <span class="var">Kasetteki Toplam Hacim</span> <span class="op">×</span> 0.05</span><br>
+        <span class="eq"><span class="var">Voluven / Kaset</span> <span class="op">=</span> <span class="var">Kasetteki Toplam Hacim</span> <span class="op">×</span> 0.06</span><br>
+        <span class="eq"><span class="var">Ürün / Kaset</span> <span class="op">=</span> <span class="var">Kalan Hacim</span> <span class="op">÷</span> <span class="var">Kaset Sayısı</span></span><br>
+        <span class="eq"><span class="var">Plazma / Kaset</span> <span class="op">=</span> <span class="var">Kasetteki Toplam</span> <span class="op">−</span> <span class="op">(</span><span class="var">Ürün/Kaset</span> <span class="op">+</span> <span class="var">DMSO</span> <span class="op">+</span> <span class="var">Voluven</span><span class="op">)</span></span>
+      </div>
+      <div class="input-card">
+        <div class="input-card-title">Kaset Bilgileri</div>
+        <div class="field-grid">
+          <div class="field">
+            <label>Kaset Sayısı</label>
+            <div class="input-wrap">
+              <input type="number" id="kryo-kaset-sayi" placeholder="3" min="1" max="20" oninput="kryoOtomatikGuncelle()">
+              <span class="unit">adet</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Kasetteki Toplam Hacim</label>
+            <div class="input-wrap">
+              <input type="number" id="kryo-kaset-toplam" placeholder="150" min="10" max="500" oninput="kryoOtomatikGuncelle()">
+              <span class="unit">mL</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:12px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:4px;font-family:var(--mono);font-size:12px;color:var(--text-dim);">
+          Kalan Hacim (③'ten): <strong id="kryo-kaset-ref-kalan" style="color:var(--text);">— mL</strong>
+        </div>
+        <button class="calc-btn" style="margin-top:16px;" onclick="hesaplaKaset()">KASET PLANINI HESAPLA</button>
+      </div>
+
+      <div id="kryo-kaset-sonuc" class="result-card" style="display:none;">
+        <div class="result-card-header">Kaset Solüsyon Planı — %5 DMSO / %6 Voluven</div>
+        <div class="result-body">
+
+          <!-- Kaset başına -->
+          <div style="margin-bottom:16px;">
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">KASET BAŞINA BİLEŞENLER</div>
+            <div class="result-grid-2">
+              <div class="result-block">
+                <div class="result-block-val blue" id="r-kryo-urun-kaset">—</div>
+                <div class="result-block-lbl">Ürün (mL) — %89</div>
+              </div>
+              <div class="result-block">
+                <div class="result-block-val warn" id="r-kryo-dmso">—</div>
+                <div class="result-block-lbl">DMSO — %5 (mL)</div>
+              </div>
+              <div class="result-block">
+                <div class="result-block-val" id="r-kryo-plazma">—</div>
+                <div class="result-block-lbl">Voluven — %6 (mL)</div>
+              </div>
+              <div class="result-block">
+                <div class="result-block-val green" id="r-kryo-plazma-kaset-b">—</div>
+                <div class="result-block-lbl">Plazma (mL)</div>
+              </div>
+              <div class="result-block">
+                <div class="result-block-val accent" id="r-kryo-kaset-toplam-r">—</div>
+                <div class="result-block-lbl">Kaset Toplam (mL)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Tüm kasetler toplam -->
+          <div style="margin-bottom:16px;">
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">TÜM KASETLER TOPLAM</div>
+            <div class="result-grid-2">
+              <div class="result-block">
+                <div class="result-block-val blue" id="r-kryo-t-urun">—</div>
+                <div class="result-block-lbl">Toplam Ürün (mL)</div>
+              </div>
+              <div class="result-block">
+                <div class="result-block-val warn" id="r-kryo-t-dmso">—</div>
+                <div class="result-block-lbl">Toplam DMSO (mL)</div>
+              </div>
+              <div class="result-block">
+                <div class="result-block-val" id="r-kryo-t-plazma">—</div>
+                <div class="result-block-lbl">Toplam Voluven (mL)</div>
+              </div>
+              <div class="result-block">
+                <div class="result-block-val accent" id="r-kryo-t-toplam">—</div>
+                <div class="result-block-lbl">Genel Toplam (mL)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Plazma hesabı -->
+          <div style="margin-bottom:16px;">
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">PLAZMA HESABI</div>
+            <div class="result-grid-2">
+              <div class="result-block">
+                <div class="result-block-val" id="r-kryo-kalan-hacim-ref">—</div>
+                <div class="result-block-lbl">Kalan Hacim (③'ten) (mL)</div>
+              </div>
+              <div class="result-block">
+                <div class="result-block-val blue" id="r-kryo-kasete-giren-urun">—</div>
+                <div class="result-block-lbl">Kasete Giren Toplam Ürün (mL)</div>
+              </div>
+              <div class="result-block">
+                <div class="result-block-val green" id="r-kryo-plazma-toplam">—</div>
+                <div class="result-block-lbl">Plazma (Kaset Toplam − Ürün − DMSO − Voluven) (mL)</div>
+              </div>
+              <div class="result-block">
+                <div class="result-block-val green" id="r-kryo-plazma-kaset">—</div>
+                <div class="result-block-lbl">Plazma / Kaset (mL)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- CD34 sonuçları -->
+          <div id="kryo-cd34-blok" style="display:none;">
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">CD34+ SONUÇLARI</div>
+            <div class="result-grid-2">
+              <div class="result-block">
+                <div class="result-block-val green" id="r-kryo-cd34-toplam">—</div>
+                <div class="result-block-lbl">CD34+ Toplam (×10⁶)</div>
+              </div>
+              <div class="result-block">
+                <div class="result-block-val green" id="r-kryo-cd34-kg">—</div>
+                <div class="result-block-lbl">CD34+ / kg (×10⁶/kg)</div>
+              </div>
+              <div class="result-block">
+                <div class="result-block-val green" id="r-kryo-canli-kaset">—</div>
+                <div class="result-block-lbl">Kaset Başına Canlı CD34+ (×10⁶)</div>
+              </div>
+              <div class="result-block">
+                <div class="result-block-val" id="r-kryo-dmso-pct-check">—</div>
+                <div class="result-block-lbl">Protokol Doğrulama</div>
+              </div>
+            </div>
+            <div class="divider"></div>
+          </div>
+
+          <!-- Hazırlık adımları -->
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;">HAZIRLAMA ADIMLARI</div>
+            <div id="kryo-adimlar"></div>
+          </div>
+
+          <div class="bilgi" style="margin-top:16px;">
+            <strong>Protokol:</strong> Ürün +4°C'ye soğutulur. Voluven (%6) önce eklenir. DMSO (%5) <strong>yavaş damla damla</strong> buz üzerinde karıştırılarak ilave edilir. Kontrollü hızda dondurma: −1°C/dk → −80°C → Sıvı azot.
+          </div>
+
+          <div id="kryo-uyari" class="uyari">
+            <strong>⚠</strong> <span id="kryo-uyari-text"></span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /container -->
+
+<script>
+  // ─── TAB ───
+  function showTab(id, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // ─── YARDIMCI ───
+  function fmt(n, dec=4) {
+    if (n === null || isNaN(n)) return '—';
+    return parseFloat(n.toFixed(dec)).toLocaleString('tr-TR');
+  }
+  function fmtML(n) { return n ? Math.round(n).toLocaleString('tr-TR') + ' mL' : '—'; }
+
+  // ─── CD34+ DOZ HESABI ───
+  function hesaplaCD34() {
+    const kilo    = parseFloat(document.getElementById('cd34-kilo').value);
+    const gilcher = parseFloat(document.getElementById('cd34-gilcher').value);
+    const cd34ul  = parseFloat(document.getElementById('cd34-ul').value);
+    const hacimML = parseFloat(document.getElementById('cd34-hacim').value);
+
+    if (!kilo || !cd34ul || !hacimML) {
+      alert('Kilo, CD34+ (/µL) ve ürün hacmini giriniz.'); return;
+    }
+
+    // Formül: CD34/kg = CD34(/µL) × ürün(µL) ÷ kilo ÷ 10^6
+    const hacimUL    = hacimML * 1000;
+    const cd34Toplam = (cd34ul * hacimUL) / 1e6;
+    const cd34PerKg  = cd34Toplam / kilo;
+
+    // Gilcher
+    const tbk  = kilo * gilcher;
+    const eksH = tbk * 0.15;
+
+    // Sonuçları yaz
+    document.getElementById('r-cd34-kg').textContent     = fmt(cd34PerKg, 4) + ' ×10⁶/kg';
+    document.getElementById('r-cd34-toplam').textContent = fmt(cd34Toplam, 4) + ' ×10⁶';
+    document.getElementById('r-tbk').textContent         = tbk.toLocaleString('tr-TR') + ' mL';
+    document.getElementById('r-eksh').textContent        = eksH.toLocaleString('tr-TR') + ' mL';
+    document.getElementById('r-eksh-pct').textContent    = '%' + ((eksH/tbk)*100).toFixed(1);
+
+    // Renk
+    const kgEl = document.getElementById('r-cd34-kg');
+    kgEl.className = 'result-highlight-value';
+    if      (cd34PerKg >= 6) kgEl.style.color = 'var(--green)';
+    else if (cd34PerKg >= 4) kgEl.style.color = 'var(--accent)';
+    else if (cd34PerKg >= 2) kgEl.style.color = 'var(--warn)';
+    else                      kgEl.style.color = '#cc2222';
+
+    // Uyarı
+    const msgs = [];
+    if (cd34PerKg < 2) msgs.push('CD34+/kg < 2×10⁶ — engraftman başarısızlığı riski yüksek.');
+    if (cd34PerKg < 4) msgs.push('Standart doz (4×10⁶/kg) altında — ek seans gerekebilir.');
+    const uyariEl = document.getElementById('cd34-uyari');
+    uyariEl.classList.toggle('show', msgs.length > 0);
+    document.getElementById('cd34-uyari-text').textContent = msgs.join(' ');
+
+    document.getElementById('cd34-sonuc').classList.add('show');
+  }
+
+  // ─── TNC / MNC HESABI ───
+  function hesaplaTNC() {
+    const kilo    = parseFloat(document.getElementById('tnc-kilo').value);
+    const hacimML = parseFloat(document.getElementById('tnc-hacim').value);
+    const wbc     = parseFloat(document.getElementById('tnc-wbc').value);
+    const mono    = parseFloat(document.getElementById('tnc-mono').value) || 0;
+    const lenf    = parseFloat(document.getElementById('tnc-lenf').value) || 0;
+
+    if (!kilo || !hacimML || !wbc) {
+      alert('Kilo, ürün hacmi ve WBC giriniz.'); return;
+    }
+
+    const hacimUL = hacimML * 1000;
+
+    // Formül: TNC = WBC(/µL) × ürün(µL) / kilo
+    const tncRaw = wbc * hacimUL / kilo;
+    const tncKg  = tncRaw / 1e8;
+    const tncToplam = tncRaw / 1e8;
+
+    // MNC = (Mono + Lenf)(/µL) × ürün(µL) / kilo
+    const mncRaw = (mono + lenf) * hacimUL / kilo;
+    const mncKg  = mncRaw / 1e8;
+
+    document.getElementById('r-tnc-total').textContent  = fmt(tncToplam, 4) + ' ×10⁸';
+    document.getElementById('r-tnc-kg').textContent     = fmt(tncKg, 4)    + ' ×10⁸/kg';
+    document.getElementById('r-mnc-total').textContent  = fmt(mncKg, 4)    + ' ×10⁸';
+    document.getElementById('r-mnc-kg').textContent     = fmt(mncRaw/1e8, 4) + ' ×10⁸/kg';
+    document.getElementById('r-tnc-urun-ul').textContent = hacimUL.toLocaleString('tr-TR') + ' µL';
+    document.getElementById('r-mnc-sum').textContent    = (mono + lenf).toLocaleString('tr-TR') + ' /µL';
+
+    document.getElementById('tnc-sonuc').classList.add('show');
+  }
+
+  // ─── DLI DOZ HESABI ───
+  function hesaplaDLI() {
+    const kilo    = parseFloat(document.getElementById('dli-kilo').value);
+    const wbc     = parseFloat(document.getElementById('dli-wbc').value);
+    const lenfPct = parseFloat(document.getElementById('dli-lenf-pct').value) / 100;
+    const cd3Pct  = parseFloat(document.getElementById('dli-cd3-pct').value)  / 100;
+    const istDoz  = parseFloat(document.getElementById('dli-istenen-doz').value) || null;
+
+    if (!kilo || !wbc || !lenfPct || !cd3Pct) {
+      alert('Tüm alanları giriniz.'); return;
+    }
+
+    // CD3 konsantrasyonu /mL = WBC(/µL) × Lenfosit% × CD3% × 1000
+    const cd3PerML = wbc * lenfPct * cd3Pct * 1000;
+
+    // DLI(mL) = istenenCD3 × kilo ÷ (WBC × Lenfosit% × CD3% × 1000)
+    const dli1 = (1e6 * kilo) / (wbc * lenfPct * cd3Pct * 1000);
+    const dli2 = (1e7 * kilo) / (wbc * lenfPct * cd3Pct * 1000);
+    const dli3 = (3e7 * kilo) / (wbc * lenfPct * cd3Pct * 1000);
+
+    document.getElementById('r-dli-konс').textContent       = Math.round(cd3PerML).toLocaleString('tr-TR') + ' CD3/mL';
+    document.getElementById('r-dli-1').textContent          = fmt(dli1, 4) + ' mL';
+    document.getElementById('r-dli-2').textContent          = fmt(dli2, 4) + ' mL';
+    document.getElementById('r-dli-3').textContent          = fmt(dli3, 4) + ' mL';
+    document.getElementById('r-dli-toplam-cd3').textContent = (3e7 * kilo).toLocaleString('tr-TR') + ' hücre';
+
+    // İstenen serbest doz
+    const elIst = document.getElementById('r-dli-istenen');
+    if (istDoz) {
+      const hacimIst = (istDoz * 1e6 * kilo) / (wbc * lenfPct * cd3Pct * 1000);
+      elIst.textContent = fmt(hacimIst, 4);
+    } else {
+      elIst.textContent = '—';
+    }
+
+    document.getElementById('dli-sonuc').classList.add('show');
+  }
+
+  // ─── DLI — İSTENEN SERBEST DOZ (canlı güncelleme) ───
+  function dliSecDoz(doz) {
+    document.getElementById('dli-istenen-doz').value = doz;
+    // Buton stillerini güncelle
+    ['1','10','30'].forEach(v => {
+      const btn = document.getElementById('dli-btn-' + v);
+      if (btn) {
+        btn.style.background = (parseFloat(v) === doz) ? 'var(--text)' : 'var(--surface)';
+        btn.style.color      = (parseFloat(v) === doz) ? '#fff'        : 'var(--text-dim)';
+        btn.style.borderColor= (parseFloat(v) === doz) ? 'var(--text)' : 'var(--border)';
+      }
+    });
+    hesaplaDLIIstenen();
+  }
+
+  function hesaplaDLIIstenen() {
+    const kilo    = parseFloat(document.getElementById('dli-kilo').value);
+    const wbc     = parseFloat(document.getElementById('dli-wbc').value);
+    const lenfPct = parseFloat(document.getElementById('dli-lenf-pct').value) / 100;
+    const cd3Pct  = parseFloat(document.getElementById('dli-cd3-pct').value)  / 100;
+    const istDoz  = parseFloat(document.getElementById('dli-istenen-doz').value);
+
+    const el = document.getElementById('r-dli-istenen');
+    if (!kilo || !wbc || !lenfPct || !cd3Pct || !istDoz) { el.textContent = '—'; return; }
+
+    const hacim = (istDoz * 1e6 * kilo) / (wbc * lenfPct * cd3Pct * 1000);
+    el.textContent = fmt(hacim, 4) + ' mL';
+  }
+
+  // ─── İŞLENECEK KAN ───
+  function hesaplaIslenen() {
+    const kilo      = parseFloat(document.getElementById('isl-kilo').value);
+    const hedefCD34 = parseFloat(document.getElementById('isl-hedef-cd34').value);
+    const pbCD34    = parseFloat(document.getElementById('isl-pb-cd34').value);
+    const te        = parseFloat(document.getElementById('isl-te').value);
+
+    if (!kilo || !hedefCD34 || !pbCD34) {
+      alert('Kilo, hedef CD34+ ve PB CD34+ giriniz.'); return;
+    }
+
+    // Formül: İşlenecek = (hedef × 10^6 × kilo) / (PB_CD34 × TE)
+    const islenen     = (hedefCD34 * 1e6 * kilo) / (pbCD34 * te);
+    const toplamHedef = hedefCD34 * kilo;
+
+    // Tipik seans: 15–20 L işlenir
+    const seansBasina = 15000;
+    const seans = Math.ceil(islenen / seansBasina);
+
+    document.getElementById('r-isl-kan').textContent         = Math.round(islenen).toLocaleString('tr-TR') + ' mL';
+    document.getElementById('r-isl-toplam-hedef').textContent = fmt(toplamHedef, 2) + ' ×10⁶';
+    document.getElementById('r-isl-seans').textContent       = seans + ' seans (tahmini)';
+
+    const uyariEl = document.getElementById('isl-uyari');
+    const msgs = [];
+    if (pbCD34 < 10) msgs.push('PB CD34+ < 10/µL — zayıf mobilizasyon. Plerixafor kurtarma düşünün.');
+    if (pbCD34 < 20) msgs.push('Sınırda mobilizasyon — aferez günü tekrar ölçüm yapın.');
+    if (seans > 2)   msgs.push(`Hedefe ulaşmak için tahminen ${seans} seans gerekiyor.`);
+    uyariEl.classList.toggle('show', msgs.length > 0);
+    document.getElementById('isl-uyari-text').textContent = msgs.join(' ');
+
+    document.getElementById('islenen-sonuc').classList.add('show');
+  }
+
+  // ─── KRİYOPREZERVASYON — ALT SEKME ───
+  function showKryoSub(id, btn) {
+    document.querySelectorAll('.kryo-sub').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.kryo-sub-btn').forEach(b => {
+      b.style.background = 'var(--surface)';
+      b.style.color = 'var(--text-dim)';
+    });
+    document.getElementById('kryo-sub-' + id).style.display = 'block';
+    btn.style.background = 'var(--text)';
+    btn.style.color = '#fff';
+    // referans değerleri güncelle
+    kryoReferanslariGuncelle();
+  }
+
+  function kryoReferanslariGuncelle() {
+    const toplam   = parseFloat(document.getElementById('kryo-toplam-hacim').value) || 0;
+    const sant     = parseFloat(document.getElementById('kryo-santrifuj-hacim').value) || 0;
+    const kalan    = toplam - sant;
+
+    // ② sekmesi referans
+    const ref1 = document.getElementById('kryo-santrifuj-ref');
+    if (ref1) ref1.textContent = toplam ? toplam + ' mL' : '— mL';
+
+    // ③ kaset sekmesi kalan referans
+    const refK = document.getElementById('kryo-kaset-ref-kalan');
+    if (refK) refK.textContent = (toplam && sant >= 0) ? kalan.toFixed(2) + ' mL' : '— mL';
+  }
+
+  function kryoOtomatikGuncelle() {
+    const toplam   = parseFloat(document.getElementById('kryo-toplam-hacim').value);
+    const sant     = parseFloat(document.getElementById('kryo-santrifuj-hacim').value) || 0;
+
+    kryoReferanslariGuncelle();
+
+    // ① Toplam hacim sonucu
+    const toplamSonuc = document.getElementById('kryo-toplam-sonuc');
+    if (toplam) {
+      toplamSonuc.classList.add('show');
+      document.getElementById('r-kryo-toplam-hacim').textContent = toplam + ' mL';
+    } else {
+      toplamSonuc.classList.remove('show');
+    }
+
+    // ② Santrifüj ayrılan sonucu
+    const santSonuc = document.getElementById('kryo-santrifuj-sonuc');
+    if (toplam && sant >= 0 && document.getElementById('kryo-santrifuj-hacim').value !== '') {
+      const kalan = toplam - sant;
+      santSonuc.classList.add('show');
+      document.getElementById('r-kryo-sant-toplam').textContent  = toplam + ' mL';
+      document.getElementById('r-kryo-sant-ayrilan').textContent = sant   + ' mL';
+      document.getElementById('r-kryo-sant-kalan').textContent   = kalan.toFixed(2) + ' mL';
+    } else {
+      santSonuc.classList.remove('show');
+    }
+  }
+
+  // ─── KASET PLANI HESAPLA ───
+  function hesaplaKaset() {
+    const toplamEl    = document.getElementById('kryo-toplam-hacim');
+    const santEl      = document.getElementById('kryo-santrifuj-hacim');
+    const toplam      = parseFloat(toplamEl ? toplamEl.value : 0);
+    const sant        = parseFloat(santEl && santEl.value !== '' ? santEl.value : 0);
+    const kasetSayi   = parseInt(document.getElementById('kryo-kaset-sayi').value);
+    const kasetToplam = parseFloat(document.getElementById('kryo-kaset-toplam').value);
+
+    if (!toplam || toplam <= 0) { alert('① Toplam Hacim sekmesinde hacim giriniz.'); return; }
+    if (!kasetSayi || kasetSayi <= 0) { alert('Kaset sayısı giriniz.'); return; }
+    if (!kasetToplam || kasetToplam <= 0) { alert('Kasetteki toplam hacmi giriniz.'); return; }
+
+    const kalanHacim   = toplam - sant;
+
+    // %5 DMSO, %6 Voluven — kasetteki toplam hacme göre
+    const dmsoKaset    = +(kasetToplam * 0.05).toFixed(2);
+    const voluvenKaset = +(kasetToplam * 0.06).toFixed(2);
+
+    // Ürün / kaset = Kalan Hacim ÷ Kaset Sayısı
+    const urunKaset    = +(kalanHacim / kasetSayi).toFixed(2);
+
+    // Plazma / kaset = Kaset Toplam − (Ürün/Kaset + DMSO + Voluven)
+    const plazmaKaset  = +(kasetToplam - urunKaset - dmsoKaset - voluvenKaset).toFixed(2);
+
+    const tDmso        = +(dmsoKaset    * kasetSayi).toFixed(2);
+    const tVoluven     = +(voluvenKaset * kasetSayi).toFixed(2);
+    const tUrun        = +(urunKaset    * kasetSayi).toFixed(2);
+    const tPlazma      = +(plazmaKaset  * kasetSayi).toFixed(2);
+    const tToplam      = +(kasetToplam  * kasetSayi).toFixed(2);
+
+    // Kaset başına
+    document.getElementById('r-kryo-urun-kaset').textContent     = urunKaset    + ' mL';
+    document.getElementById('r-kryo-dmso').textContent           = dmsoKaset    + ' mL';
+    document.getElementById('r-kryo-plazma').textContent         = voluvenKaset + ' mL';
+    document.getElementById('r-kryo-plazma-kaset-b').textContent = plazmaKaset  + ' mL';
+    document.getElementById('r-kryo-kaset-toplam-r').textContent = kasetToplam  + ' mL';
+
+    // Toplam
+    document.getElementById('r-kryo-t-urun').textContent   = tUrun    + ' mL';
+    document.getElementById('r-kryo-t-dmso').textContent   = tDmso    + ' mL';
+    document.getElementById('r-kryo-t-plazma').textContent = tVoluven + ' mL';
+    document.getElementById('r-kryo-t-toplam').textContent = tToplam  + ' mL';
+
+    // Plazma hesabı
+    document.getElementById('r-kryo-kalan-hacim-ref').textContent   = kalanHacim.toFixed(2) + ' mL';
+    document.getElementById('r-kryo-kasete-giren-urun').textContent = tUrun      + ' mL';
+    document.getElementById('r-kryo-plazma-toplam').textContent     = tPlazma    + ' mL';
+    document.getElementById('r-kryo-plazma-kaset').textContent      = plazmaKaset + ' mL';
+
+    document.getElementById('r-kryo-dmso-pct-check').textContent = '%5 DMSO + %6 Voluven ✓';
+
+    // CD34 bloğu
+    document.getElementById('kryo-cd34-blok').style.display = 'none';
+
+    // Hazırlık adımları
+    const adimlar = [
+      { no:1, renk:'var(--text-dim)', baslik:'Ürünü soğut',
+        aciklama:`Ürünü buz üzerine al, +4°C'ye soğut. (Kalan hacim: ${kalanHacim.toFixed(2)} mL)` },
+      { no:2, renk:'var(--blue)', baslik:'Voluven ekle (%6)',
+        aciklama:`Her kasete <strong>${voluvenKaset} mL</strong> Voluven (%6 HES) ekle. (${kasetSayi} kaset → toplam ${tVoluven} mL)` },
+      { no:3, renk:'var(--warn)', baslik:'DMSO ekle (%5) — dikkatli!',
+        aciklama:`Her kasete <strong>${dmsoKaset} mL</strong> DMSO yavaş damla damla, buz üzerinde karıştırarak ekle. (${kasetSayi} kaset → toplam ${tDmso} mL)` },
+      { no:4, renk:'var(--accent)', baslik:'Ürünü aktar',
+        aciklama:`Her kasete <strong>${urunKaset} mL</strong> ürün ekle. Plazma: <strong>${plazmaKaset} mL</strong>/kaset (toplam ${tPlazma} mL). Kaset toplam: <strong>${kasetToplam} mL</strong>.` },
+      { no:5, renk:'var(--green)', baslik:'Kontrollü dondurma',
+        aciklama:`−1°C/dk hızda −80°C'ye indir → Sıvı azot tankına transfer et.` },
+    ];
+
+    let html = '';
+    adimlar.forEach(a => {
+      html += `<div style="display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);">
+        <div style="width:28px;height:28px;border-radius:50%;background:${a.renk};color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:600;flex-shrink:0;">${a.no}</div>
+        <div>
+          <div style="font-family:var(--mono);font-size:11px;font-weight:600;color:${a.renk};letter-spacing:0.06em;margin-bottom:3px;">${a.baslik}</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.5;">${a.aciklama}</div>
+        </div>
+      </div>`;
+    });
+    document.getElementById('kryo-adimlar').innerHTML = html;
+
+    // Uyarılar
+    const msgs = [];
+    if (urunKaset < 0) msgs.push('Kaset hacmi yetersiz — DMSO + Voluven toplamı kaset hacmini aşıyor!');
+    if (plazmaKaset < 0) msgs.push(`Plazma negatif çıktı! Kaset toplam hacmini artırın veya kaset sayısını azaltın.`);
+    const uyariEl = document.getElementById('kryo-uyari');
+    uyariEl.classList.toggle('show', msgs.length > 0);
+    document.getElementById('kryo-uyari-text').textContent = msgs.join(' ');
+
+    document.getElementById('kryo-kaset-sonuc').style.display = 'block';
+  }
+</script>
+</body>
+</html>
